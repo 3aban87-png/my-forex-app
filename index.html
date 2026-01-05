@@ -6,40 +6,81 @@
     <title>Forex Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 0; }
-        .header { background: #2c3e50; padding: 20px; text-align: center; font-weight: bold; }
-        .content { padding: 20px; height: 70vh; display: flex; align-items: center; justify-content: center; }
+        body { font-family: Tahoma, sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 0; padding-bottom: 70px; }
+        .header { background: #2c3e50; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* استایل ماشین حساب */
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
         /* نوار پایین */
-        .navbar {
-            position: fixed; bottom: 0; width: 100%;
-            background: #2c3e50; display: flex; justify-content: space-around;
-            padding: 10px 0; border-top: 1px solid #34495e;
-        }
-        .nav-item { color: #bdc3c7; text-decoration: none; font-size: 12px; text-align: center; }
+        .navbar { position: fixed; bottom: 0; width: 100%; background: #2c3e50; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #34495e; }
+        .nav-item { color: #bdc3c7; text-decoration: none; font-size: 11px; text-align: center; flex: 1; border: none; background: none; cursor: pointer; }
         .nav-item.active { color: #3498db; }
-        .icon { font-size: 20px; display: block; }
+        .icon { font-size: 18px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="header">پنل معاملاتی VIP</div>
+    <div class="header" id="page-title">سیگنال‌ها</div>
 
-    <div class="content">
-        <div id="main-view">به بخش مدیریت خوش آمدید</div>
+    <div id="signals" class="page active-page">
+        <div style="background: #2c3e50; border-left: 5px solid #2ecc71; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between;">
+                <strong>XAUUSD (طلا)</strong>
+                <span style="color: #2ecc71;">BUY 🟢</span>
+            </div>
+            <p style="font-size: 13px;">ورود: 2045 | حد سود: 2060 | حد ضرر: 2038</p>
+        </div>
+    </div>
+
+    <div id="calc" class="page">
+        <h3>🧮 محاسبه حجم معامله</h3>
+        <input type="number" id="balance" placeholder="موجودی (دلار)" value="1000">
+        <input type="number" id="risk" placeholder="درصد ریسک" value="1">
+        <input type="number" id="pips" placeholder="مقدار استاپ (پیپ)" value="30">
+        <button onclick="calculateLot()">محاسبه</button>
+        <div id="result" style="margin-top:20px; text-align:center; font-size:18px; color:#2ecc71;"></div>
+    </div>
+
+    <div id="support" class="page">
+        <h3>🎧 پشتیبانی</h3>
+        <p>در صورت بروز مشکل با آیدی زیر در تماس باشید:</p>
+        <button onclick="window.open('https://t.me/your_admin_id')">ارسال پیام به پشتیبان</button>
     </div>
 
     <nav class="navbar">
-        <a href="#" class="nav-item"> <span class="icon">📢</span> کانال </a>
-        <a href="#" class="nav-item"> <span class="icon">🎧</span> پشتیبانی </a>
-        <a href="#" class="nav-item"> <span class="icon">🧮</span> ماشین‌حساب </a>
-        <a href="#" class="nav-item"> <span class="icon">🔄</span> کپی‌ترید </a>
-        <a href="#" class="nav-item active"> <span class="icon">📈</span> سیگنال‌ها </a>
+        <button class="nav-item" onclick="showPage('support', 'پشتیبانی')"> <span class="icon">🎧</span> پشتیبانی </button>
+        <button class="nav-item" onclick="showPage('calc', 'ماشین‌حساب')"> <span class="icon">🧮</span> ماشین‌حساب </button>
+        <button class="nav-item active" onclick="showPage('signals', 'سیگنال‌ها')"> <span class="icon">📈</span> سیگنال‌ها </button>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand(); // بزرگ کردن مینی‌اپ در گوشی
+        tg.expand();
+
+        function showPage(pageId, title) {
+            // مخفی کردن همه صفحات
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            // نمایش صفحه انتخاب شده
+            document.getElementById(pageId).classList.add('active-page');
+            // تغییر عنوان هدر
+            document.getElementById('page-title').innerText = title;
+            // تغییر وضعیت دکمه های نوار پایین
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function calculateLot() {
+            const balance = document.getElementById('balance').value;
+            const risk = document.getElementById('risk').value;
+            const pips = document.getElementById('pips').value;
+            const res = (balance * (risk / 100)) / (pips * 10);
+            document.getElementById('result').innerText = "حجم پیشنهادی: " + res.toFixed(2) + " Lot";
+        }
     </script>
 </body>
 </html>
