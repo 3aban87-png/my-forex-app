@@ -1,43 +1,115 @@
-<div id="copytrade" class="page">
-    <h3>🔄 تنظیمات کپی‌ترید</h3>
-    <div class="card">
-        <p style="font-size: 14px;">وضعیت اتصال: <span id="conn-status" style="color: #fb7185;">قطع شده</span></p>
-        <input type="text" id="mt_account" placeholder="شماره حساب متاتریدر">
-        <input type="password" id="mt_password" placeholder="رمز عبور (Investor/Main)">
-        <input type="text" id="mt_server" placeholder="سرور (مثلاً: WMMarkets-Live)">
-        <button onclick="connectAccount()" style="margin-top: 10px; background: #16a34a;">اتصال به حساب</button>
-    </div>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Pro App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: white; margin: 0; padding-bottom: 80px; overflow-x: hidden; }
+        .header { background: #1e293b; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #334155; position: sticky; top: 0; z-index: 100; }
+        .page { display: none; padding: 20px; animation: slideUp 0.3s ease; }
+        .active-page { display: block; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-family: Tahoma; }
+        button { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:active { transform: scale(0.98); }
+        .navbar { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #334155; }
+        .nav-item { color: #94a3b8; border: none; background: none; font-size: 10px; flex: 1; cursor: pointer; text-align: center; }
+        .nav-item.active { color: #3b82f6; }
+        .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        code { display: block; background: #000; padding: 10px; border-radius: 5px; color: #4ade80; text-align: center; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header" id="page-title">سیگنال‌های زنده</div>
 
-    <div class="card">
-        <p>انتخاب نوع حجم معاملات:</p>
-        <select id="volume-mode" onchange="toggleVolumeInput()" style="width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
-            <option value="auto">هوشمند (بر اساس مدیریت سرمایه)</option>
-            <option value="manual">دستی (حجم ثابت)</option>
-        </select>
-        
-        <div id="manual-volume-div" style="display: none; margin-top: 15px;">
-            <label style="font-size: 12px; color: #94a3b8;">حجم مورد نظر را وارد کنید:</label>
-            <input type="number" id="fixed-lot" step="0.01" value="0.01">
+    <div id="signals" class="page active-page">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between;"><strong>XAUUSD (طلا)</strong> <span style="color:#2ecc71">BUY 🟢</span></div>
+            <p style="font-size: 12px; color: #94a3b8;">ورود: 2045.50 | TP: 2060.00 | SL: 2038.00</p>
         </div>
     </div>
-</div>
 
-<script>
-    // تابع برای نشان دادن/مخفی کردن فیلد حجم دستی
-    function toggleVolumeInput() {
-        const mode = document.getElementById('volume-mode').value;
-        const div = document.getElementById('manual-volume-div');
-        div.style.display = (mode === 'manual') ? 'block' : 'none';
-    }
+    <div id="copytrade" class="page">
+        <h3>🔄 تنظیمات کپی‌ترید</h3>
+        <div class="card">
+            <label>انتخاب روش اتصال:</label>
+            <select id="conn-method" onchange="toggleConnMethod()">
+                <option value="meta">روش ابری (MetaApi)</option>
+                <option value="ea">روش اکسپرت (EA)</option>
+            </select>
+        </div>
 
-    function connectAccount() {
-        // اینجا در آینده کد اتصال به بک‌ان پایتون را می‌نویسیم
-        tg.MainButton.setText("در حال بررسی اتصال...");
-        tg.MainButton.show();
-        setTimeout(() => {
-            document.getElementById('conn-status').innerText = "متصل شد ✅";
-            document.getElementById('conn-status').style.color = "#4ade80";
-            tg.MainButton.hide();
-        }, 2000);
-    }
-</script>
+        <div id="meta-fields" class="card">
+            <input type="text" id="mt_acc" placeholder="شماره حساب">
+            <input type="password" id="mt_pass" placeholder="رمز عبور">
+            <input type="text" id="mt_serv" placeholder="سرور (مثلا WMMarkets-Live)">
+            <button onclick="saveSettings()" style="background:#16a34a">ذخیره و اتصال ابری</button>
+        </div>
+
+        <div id="ea-fields" class="card" style="display:none">
+            <p style="font-size:12px; color:#fbbf24">آموزش: فایل EA را در متاتریدر نصب و کد زیر را وارد کنید:</p>
+            <code>ID: 835971</code>
+            <button onclick="window.open('#')">📥 دانلود فایل EA</button>
+        </div>
+
+        <div class="card">
+            <label>حجم معاملات:</label>
+            <select id="vol-mode" onchange="toggleVol()">
+                <option value="auto">هوشمند (مدیریت سرمایه)</option>
+                <option value="manual">دستی (حجم ثابت)</option>
+            </select>
+            <input type="number" id="fixed-lot" style="display:none" step="0.01" placeholder="مثلا 0.02">
+        </div>
+    </div>
+
+    <div id="calc" class="page">
+        <h3>🧮 ماشین‌حساب</h3>
+        <input type="number" id="bal" placeholder="موجودی">
+        <input type="number" id="rsk" placeholder="درصد ریسک">
+        <input type="number" id="st" placeholder="استاپ (پیپ)">
+        <button onclick="doCalc()">محاسبه</button>
+        <div id="res" style="text-align:center; margin-top:10px; color:#4ade80"></div>
+    </div>
+    <div id="public" class="page"><h3>📢 اخبار کانال</h3></div>
+    <div id="support" class="page"><h3>🎧 پشتیبانی</h3><button>ارسال پیام</button></div>
+
+    <nav class="navbar">
+        <button class="nav-item" onclick="showPage('support', 'پشتیبانی')"><span class="icon">🎧</span>پشتیبانی</button>
+        <button class="nav-item" onclick="showPage('public', 'کانال')"><span class="icon">📢</span>کانال</button>
+        <button class="nav-item" onclick="showPage('calc', 'محاسبات')"><span class="icon">🧮</span>محاسبه</button>
+        <button class="nav-item" onclick="showPage('copytrade', 'کپی‌ترید')"><span class="icon">🔄</span>کپی‌ترید</button>
+        <button class="nav-item active" onclick="showPage('signals', 'سیگنال‌ها')"><span class="icon">📈</span>سیگنال</button>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp; tg.expand();
+        function showPage(p, t){
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active-page'));
+            document.getElementById(p).classList.add('active-page');
+            document.getElementById('page-title').innerText = t;
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+        function toggleConnMethod(){
+            const m = document.getElementById('conn-method').value;
+            document.getElementById('meta-fields').style.display = (m==='meta')?'block':'none';
+            document.getElementById('ea-fields').style.display = (m==='ea')?'block':'none';
+        }
+        function toggleVol(){
+            const m = document.getElementById('vol-mode').value;
+            document.getElementById('fixed-lot').style.display = (m==='manual')?'block':'none';
+        }
+        function saveSettings(){
+            const data = { acc: document.getElementById('mt_acc').value, mode: document.getElementById('vol-mode').value };
+            tg.sendData(JSON.stringify(data)); // ارسال به ربات پایتون
+        }
+        function doCalc(){
+            const r = (document.getElementById('bal').value * (document.getElementById('rsk').value/100)) / (document.getElementById('st').value * 10);
+            document.getElementById('res').innerText = "حجم: " + r.toFixed(2);
+        }
+    </script>
+</body>
+</html>
