@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 0; }
+        .header { background: #2c3e50; padding: 20px; text-align: center; font-weight: bold; }
+        .content { padding: 20px; height: 70vh; display: flex; align-items: center; justify-content: center; }
+        
+        /* نوار پایین */
+        .navbar {
+            position: fixed; bottom: 0; width: 100%;
+            background: #2c3e50; display: flex; justify-content: space-around;
+            padding: 10px 0; border-top: 1px solid #34495e;
+        }
+        .nav-item { color: #bdc3c7; text-decoration: none; font-size: 12px; text-align: center; }
+        .nav-item.active { color: #3498db; }
+        .icon { font-size: 20px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">پنل معاملاتی VIP</div>
+
+    <div class="content">
+        <div id="main-view">به بخش مدیریت خوش آمدید</div>
+    </div>
+
+    <nav class="navbar">
+        <a href="#" class="nav-item"> <span class="icon">📢</span> کانال </a>
+        <a href="#" class="nav-item"> <span class="icon">🎧</span> پشتیبانی </a>
+        <a href="#" class="nav-item"> <span class="icon">🧮</span> ماشین‌حساب </a>
+        <a href="#" class="nav-item"> <span class="icon">🔄</span> کپی‌ترید </a>
+        <a href="#" class="nav-item active"> <span class="icon">📈</span> سیگنال‌ها </a>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // بزرگ کردن مینی‌اپ در گوشی
+    </script>
+</body>
+</html>
