@@ -3,75 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EXPONENTIAL FX TERMINAL</title>
+    <title>PRO TERMINAL</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg: #0f172a; --card: #1e293b; --blue: #3b82f6; --green: #10b981; --red: #ef4444; --text: #f8fafc;
-        }
-
-        body {
-            margin: 0; padding: 0; background: var(--bg); color: var(--text);
-            font-family: 'Tahoma', sans-serif; padding-bottom: 120px;
-        }
-
-        /* نوار آمار بالا */
-        .stats-header {
-            background: linear-gradient(to bottom, #1e293b, #0f172a);
-            padding: 20px; text-align: center; border-bottom: 2px solid var(--blue);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        /* استایل صفحات */
-        .page { display: none; padding: 15px; }
-        .active-page { display: block; animation: fadeIn 0.3s; }
+        :root { --bg: #0f172a; --card: #1e293b; --blue: #3b82f6; --green: #10b981; --red: #ef4444; --text: #f8fafc; }
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: sans-serif; padding-bottom: 100px; overflow-x: hidden; }
+        
+        .header { background: #1e293b; padding: 20px; text-align: center; border-bottom: 2px solid var(--blue); }
+        .page { display: none; padding: 15px; animation: fadeIn 0.2s; }
+        .active-page { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* کارت‌های سیگنال و بخش‌ها */
-        .card {
-            background: var(--card); border-radius: 15px; padding: 15px;
-            margin-bottom: 15px; border: 1px solid #334155;
-        }
+        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        
+        /* نوار ناوبری اصلاح شده برای دسکتاپ */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; display: flex; height: 75px; border-top: 1px solid var(--blue); z-index: 10000; justify-content: space-around; }
+        .nav-btn { flex: 1; background: none; border: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 11px; outline: none; }
+        .nav-btn b { font-size: 20px; margin-bottom: 4px; display: block; }
+        .nav-btn.active { color: var(--blue); background: rgba(59, 130, 246, 0.1); }
 
-        /* دکمه‌های ناوبری بزرگ (اصلاح اصلی) */
-        .nav-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #1e293b; display: flex; height: 80px;
-            border-top: 2px solid var(--blue); z-index: 9999;
-        }
-
-        .nav-btn {
-            flex: 1; background: none; border: none; color: #94a3b8;
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; cursor: pointer; transition: 0.2s;
-            font-size: 11px; font-weight: bold; -webkit-tap-highlight-color: transparent;
-        }
-
-        .nav-btn span { font-size: 24px; margin-bottom: 5px; } /* ایموجی‌های بزرگ */
-        .nav-btn.active { background: rgba(59, 130, 246, 0.1); color: var(--blue); }
-
-        /* استایل لیست‌ها */
-        .hist-item {
-            background: rgba(255,255,255,0.05); padding: 12px;
-            border-radius: 10px; margin-bottom: 8px; display: flex;
-            justify-content: space-between; align-items: center;
-        }
-
-        input {
-            width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px;
-            border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box;
-        }
+        .hist-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div class="stats-header">
-        <div style="font-size: 12px; color: #94a3b8;">برآیند کل معاملات</div>
-        <div id="total-pips" style="font-size: 28px; font-weight: bold; color: var(--green);">0.0</div>
+    <div class="header">
+        <div style="font-size: 11px; color: #94a3b8;">برآیند کل معاملات</div>
+        <div id="total-pips" style="font-size: 26px; font-weight: bold; color: var(--green);">0.0</div>
     </div>
 
     <div id="p-signals" class="page active-page">
-        <h3 style="border-right: 4px solid var(--blue); padding-right: 10px;">📈 سیگنال‌های لایو</h3>
+        <h3>📈 سیگنال‌های فعلی</h3>
         <div id="signal-list"></div>
     </div>
 
@@ -83,105 +46,99 @@
     <div id="p-copy" class="page">
         <div class="card">
             <h3>🔄 کپی‌ترید خودکار</h3>
-            <p style="font-size: 13px; color: #94a3b8;">اطلاعات حساب خود را برای اتصال به مستر وارد کنید:</p>
-            <input type="text" placeholder="شماره حساب (MT5)">
+            <input type="text" placeholder="شماره حساب">
             <input type="password" placeholder="رمز عبور">
-            <input type="text" placeholder="نام سرور (Broker Server)">
-            <button style="width:100%; padding:15px; background:var(--blue); border:none; border-radius:10px; color:white; font-weight:bold; margin-top:10px;">ذخیره و اتصال</button>
+            <button style="width:100%; padding:12px; background:var(--blue); border:none; border-radius:8px; color:white;">اتصال به سرور</button>
         </div>
     </div>
 
     <div id="p-calc" class="page">
         <div class="card">
-            <h3>🧮 مدیریت سرمایه</h3>
-            <input type="number" id="bal" placeholder="موجودی حساب ($)">
-            <input type="number" id="rsk" placeholder="درصد ریسک (مثلاً 1)">
+            <h3>🧮 محاسبه حجم</h3>
+            <input type="number" id="bal" placeholder="موجودی ($)">
             <input type="number" id="sl_p" placeholder="استاپ لاس (پیپ)">
-            <button onclick="calculate()" style="width:100%; padding:15px; background:var(--green); border:none; border-radius:10px; color:white; font-weight:bold;">محاسبه حجم (Lot)</button>
-            <h2 id="res" style="text-align:center; color:var(--green)"></h2>
+            <button onclick="calculate()" style="width:100%; padding:12px; background:var(--green); border:none; border-radius:8px; color:white;">محاسبه</button>
+            <h2 id="res" style="text-align:center;"></h2>
         </div>
     </div>
 
+    <div id="p-news" class="page">
+        <h3>📢 اخبار و اطلاعیه‌ها</h3>
+        <div class="card">سیستم به نسخه پرو آپدیت شد.</div>
+    </div>
+
     <nav class="nav-bar">
-        <button class="nav-btn" onclick="showTab('p-signals', this)"><span>📈</span>سیگنال</button>
-        <button class="nav-btn" onclick="showTab('p-history', this)"><span>📜</span>تاریخچه</button>
-        <button class="nav-btn" onclick="showTab('p-copy', this)"><span>🔄</span>کپی‌ترید</button>
-        <button class="nav-btn" onclick="showTab('p-calc', this)"><span>🧮</span>محاسبه</button>
-        <button class="nav-btn" onclick="window.open('https://t.me/your_admin')"><span>🎧</span>پشتیبانی</button>
+        <div class="nav-btn active" id="btn-signals"><b>📈</b><span>سیگنال</span></div>
+        <div class="nav-btn" id="btn-history"><b>📜</b><span>تاریخچه</span></div>
+        <div class="nav-btn" id="btn-copy"><b>🔄</b><span>کپی‌ترید</span></div>
+        <div class="nav-btn" id="btn-calc"><b>🧮</b><span>محاسبه</span></div>
+        <div class="nav-btn" id="btn-news"><b>📢</b><span>اخبار</span></div>
+        <div class="nav-btn" id="btn-supp"><b>🎧</b><span>پشتیبانی</span></div>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // تابع تعویض تب‌ها با اطمینان بالا
-        function showTab(pageId, btn) {
-            // مخفی کردن همه
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            
-            // نمایش صفحه انتخابی
-            const target = document.getElementById(pageId);
-            if(target) {
-                target.classList.add('active-page');
-            }
-            
-            // فعال کردن دکمه
-            if(btn) {
-                btn.classList.add('active');
-            }
+        // سیستم جابجایی صفحات اصلاح شده برای دسکتاپ و موبایل
+        function setupNav() {
+            const buttons = {
+                'btn-signals': 'p-signals',
+                'btn-history': 'p-history',
+                'btn-copy': 'p-copy',
+                'btn-calc': 'p-calc',
+                'btn-news': 'p-news'
+            };
+
+            Object.keys(buttons).forEach(btnId => {
+                document.getElementById(btnId).addEventListener('click', function() {
+                    // حذف وضعیت فعال از همه
+                    document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    
+                    // فعال سازی صفحه و دکمه جدید
+                    document.getElementById(buttons[btnId]).classList.add('active-page');
+                    this.classList.add('active');
+                });
+            });
+
+            // دکمه پشتیبانی
+            document.getElementById('btn-supp').addEventListener('click', function() {
+                tg.openTelegramLink('https://t.me/Your_Username'); // یوزرنیم خودت رو اینجا بزن
+            });
         }
 
         function calculate() {
             const b = document.getElementById('bal').value;
-            const r = document.getElementById('rsk').value;
             const s = document.getElementById('sl_p').value;
-            if(b && r && s) {
-                const lot = (b * (r/100)) / (s * 10);
+            if(b && s) {
+                const lot = (b * 0.01) / (s * 10);
                 document.getElementById('res').innerText = lot.toFixed(2) + " Lot";
             }
         }
 
         async function update() {
             try {
-                // آدرس سرور پایتون شما
                 const res = await fetch('http://localhost:8000/api/v1/status');
                 const data = await res.json();
-                
-                document.getElementById('total-pips').innerText = (data.total_pips > 0 ? "+" : "") + data.total_pips;
+                document.getElementById('total-pips').innerText = data.total_pips;
 
-                // رندر سیگنال‌ها
-                const sList = document.getElementById('signal-list');
-                sList.innerHTML = data.active_signals.length ? "" : '<p style="text-align:center; color:#64748b; margin-top:30px;">سیگنال فعالی نیست</p>';
+                let sHtml = '';
                 data.active_signals.forEach(s => {
-                    sList.innerHTML += `
-                        <div class="card" style="border-right: 5px solid ${s.type=='BUY'?'var(--green)':'var(--red)'}">
-                            <div style="display:flex; justify-content:space-between;">
-                                <b>📊 ${s.symbol}</b>
-                                <b style="color:${s.type=='BUY'?'var(--green)':'var(--red)'}">${s.type}</b>
-                            </div>
-                            <div style="font-size:12px; margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-                                <span>ورود: ${s.entry}</span>
-                                <span>زمان: ${s.time.split(' ')[1]}</span>
-                                <span style="color:var(--red)">SL: ${s.sl}</span>
-                                <span style="color:var(--green)">TP: ${s.tp}</span>
-                            </div>
-                        </div>`;
+                    sHtml += `<div class="card" style="border-right:5px solid ${s.type=='BUY'?'#10b981':'#ef4444'}">
+                        <b>${s.symbol} | ${s.type}</b><br><small>ورود: ${s.entry}</small></div>`;
                 });
+                document.getElementById('signal-list').innerHTML = sHtml || 'سیگنال فعالی نیست';
 
-                // رندر تاریخچه
-                const hList = document.getElementById('history-list');
-                hList.innerHTML = "";
+                let hHtml = '';
                 data.history.forEach(h => {
-                    hList.innerHTML += `
-                        <div class="hist-item">
-                            <span>${h.symbol}</span>
-                            <b style="color:${h.pips>=0?'var(--green)':'var(--red)'}">${h.pips > 0 ? '+':''}${h.pips} Pip</b>
-                        </div>`;
+                    hHtml += `<div class="hist-item"><span>${h.symbol}</span><b>${h.pips:+}</b></div>`;
                 });
-            } catch(e) { console.log("Waiting for Server..."); }
+                document.getElementById('history-list').innerHTML = hHtml || 'تاریخچه خالی است';
+            } catch(e) {}
         }
 
+        setupNav();
         setInterval(update, 3000);
         update();
     </script>
