@@ -5,201 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EXPONENTIAL FX TERMINAL</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #3b82f6;
-            --secondary: #1e293b;
-            --accent: #6366f1;
-            --success: #10b981;
-            --danger: #ef4444;
-            --glass: rgba(30, 41, 59, 0.7);
+            --bg: #0f172a; --card: #1e293b; --blue: #3b82f6; --green: #10b981; --red: #ef4444; --text: #f8fafc;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
-            color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            overflow-x: hidden;
-            padding-bottom: 100px;
+            margin: 0; padding: 0; background: var(--bg); color: var(--text);
+            font-family: 'Tahoma', sans-serif; padding-bottom: 120px;
         }
 
-        /* Top Balance Bar */
-        .top-stats {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            margin: 15px;
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-around;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        /* نوار آمار بالا */
+        .stats-header {
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            padding: 20px; text-align: center; border-bottom: 2px solid var(--blue);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 20px; font-weight: 800; display: block; margin-top: 5px; }
+        /* استایل صفحات */
+        .page { display: none; padding: 15px; }
+        .active-page { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Page Management */
-        .page { display: none; padding: 15px; min-height: 400px; }
-        .active-page { display: block; animation: slideIn 0.4s ease-out; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+        /* کارت‌های سیگنال و بخش‌ها */
+        .card {
+            background: var(--card); border-radius: 15px; padding: 15px;
+            margin-bottom: 15px; border: 1px solid #334155;
         }
 
-        /* Signal Cards */
-        .signal-card {
-            background: var(--glass);
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 6px solid var(--primary);
-            position: relative;
-        }
-
-        .buy-border { border-left-color: var(--success); }
-        .sell-border { border-left-color: var(--danger); }
-
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .symbol-name { font-size: 22px; font-weight: 700; }
-        .badge { padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-
-        .grid-data { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .data-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
-        .data-label { font-size: 10px; color: #94a3b8; }
-        .data-value { display: block; font-size: 15px; font-family: monospace; margin-top: 3px; }
-
-        /* Navigation Menu */
+        /* دکمه‌های ناوبری بزرگ (اصلاح اصلی) */
         .nav-bar {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 5px;
-            border: 1px solid rgba(255,255,255,0.1);
-            z-index: 1000;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1e293b; display: flex; height: 80px;
+            border-top: 2px solid var(--blue); z-index: 9999;
         }
 
         .nav-btn {
-            background: none;
-            border: none;
-            color: #64748b;
-            font-size: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: 0.3s;
+            flex: 1; background: none; border: none; color: #94a3b8;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; cursor: pointer; transition: 0.2s;
+            font-size: 11px; font-weight: bold; -webkit-tap-highlight-color: transparent;
         }
 
-        .nav-btn i { font-size: 22px; margin-bottom: 5px; }
-        .nav-btn.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-btn span { font-size: 24px; margin-bottom: 5px; } /* ایموجی‌های بزرگ */
+        .nav-btn.active { background: rgba(59, 130, 246, 0.1); color: var(--blue); }
 
-        /* History Table */
+        /* استایل لیست‌ها */
         .hist-item {
-            background: rgba(255,255,255,0.03);
-            margin-bottom: 8px;
-            padding: 12px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: rgba(255,255,255,0.05); padding: 12px;
+            border-radius: 10px; margin-bottom: 8px; display: flex;
+            justify-content: space-between; align-items: center;
         }
 
         input {
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
-            border: 1px solid #334155; background: #0f172a; color: white;
+            width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px;
+            border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box;
         }
     </style>
 </head>
 <body>
 
-    <div class="top-stats">
-        <div class="stat-item">
-            <span class="stat-label">Performance کل</span>
-            <span id="total-pips" class="stat-value" style="color: var(--success);">0.0</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">سیگنال‌های فعال</span>
-            <span id="active-count" class="stat-value">0</span>
-        </div>
+    <div class="stats-header">
+        <div style="font-size: 12px; color: #94a3b8;">برآیند کل معاملات</div>
+        <div id="total-pips" style="font-size: 28px; font-weight: bold; color: var(--green);">0.0</div>
     </div>
 
-    <div id="signals-p" class="page active-page">
-        <h2 style="margin-right:10px;">📉 سیگنال‌های زنده بازار</h2>
+    <div id="p-signals" class="page active-page">
+        <h3 style="border-right: 4px solid var(--blue); padding-right: 10px;">📈 سیگنال‌های لایو</h3>
         <div id="signal-list"></div>
     </div>
 
-    <div id="history-p" class="page">
-        <h2>📜 تاریخچه معاملات اخیر</h2>
+    <div id="p-history" class="page">
+        <h3>📜 تاریخچه معاملات</h3>
         <div id="history-list"></div>
     </div>
 
-    <div id="copy-p" class="page">
-        <h2>🔄 سیستم کپی‌ترید خودکار</h2>
-        <div class="signal-card">
-            <p>وضعیت: <span style="color:var(--danger)">غیرفعال</span></p>
-            <input type="text" placeholder="Server Name (Ex: ICMarkets-Live)">
-            <input type="number" placeholder="Account Number">
-            <input type="password" placeholder="Master Password">
-            <button style="width:100%; padding:15px; border-radius:12px; background:var(--primary); color:white; border:none; font-weight:bold;">اتصال آنی به سرور</button>
+    <div id="p-copy" class="page">
+        <div class="card">
+            <h3>🔄 کپی‌ترید خودکار</h3>
+            <p style="font-size: 13px; color: #94a3b8;">اطلاعات حساب خود را برای اتصال به مستر وارد کنید:</p>
+            <input type="text" placeholder="شماره حساب (MT5)">
+            <input type="password" placeholder="رمز عبور">
+            <input type="text" placeholder="نام سرور (Broker Server)">
+            <button style="width:100%; padding:15px; background:var(--blue); border:none; border-radius:10px; color:white; font-weight:bold; margin-top:10px;">ذخیره و اتصال</button>
         </div>
     </div>
 
-    <div id="calc-p" class="page">
-        <h2>🧮 ماشین‌حساب مدیریت ریسک</h2>
-        <div class="signal-card">
-            <input type="number" id="bal" placeholder="موجودی (Balance)">
-            <input type="number" id="rsk" placeholder="ریسک (درصد)">
+    <div id="p-calc" class="page">
+        <div class="card">
+            <h3>🧮 مدیریت سرمایه</h3>
+            <input type="number" id="bal" placeholder="موجودی حساب ($)">
+            <input type="number" id="rsk" placeholder="درصد ریسک (مثلاً 1)">
             <input type="number" id="sl_p" placeholder="استاپ لاس (پیپ)">
-            <button onclick="calculate()" style="width:100%; padding:15px; border-radius:12px; background:var(--accent); color:white; border:none; font-weight:bold;">محاسبه لات (Lot)</button>
-            <h3 id="res" style="text-align:center; margin-top:15px; color:var(--success)"></h3>
-        </div>
-    </div>
-
-    <div id="news-p" class="page">
-        <h2>📢 اخبار و اطلاعیه‌ها</h2>
-        <div class="hist-item">سیستم مانیتورینگ متاتریدر با موفقیت آپدیت شد.</div>
-        <div class="hist-item">بخش کپی‌ترید ابری به نسخه بتا منتقل شد.</div>
-    </div>
-
-    <div id="supp-p" class="page">
-        <h2>🎧 مرکز پشتیبانی VIP</h2>
-        <div class="signal-card" style="text-align:center">
-            <i class="fas fa-headset" style="font-size:50px; color:var(--primary)"></i>
-            <p>کارشناسان ما آماده پاسخگویی به سوالات شما هستند.</p>
-            <button onclick="window.open('https://t.me/your_admin')" style="width:100%; padding:15px; border-radius:12px; background:white; color:black; border:none; font-weight:bold;">ارسال پیام مستقیم</button>
+            <button onclick="calculate()" style="width:100%; padding:15px; background:var(--green); border:none; border-radius:10px; color:white; font-weight:bold;">محاسبه حجم (Lot)</button>
+            <h2 id="res" style="text-align:center; color:var(--green)"></h2>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <button class="nav-btn" onclick="showPage('supp-p', this)"><i class="fas fa-headset"></i>پشتیبانی</button>
-        <button class="nav-btn" onclick="showPage('news-p', this)"><i class="fas fa-bullhorn"></i>اخبار</button>
-        <button class="nav-btn" onclick="showPage('calc-p', this)"><i class="fas fa-calculator"></i>محاسبه</button>
-        <button class="nav-btn" onclick="showPage('history-p', this)"><i class="fas fa-history"></i>تاریخچه</button>
-        <button class="nav-btn" onclick="showPage('copy-p', this)"><i class="fas fa-sync"></i>کپی‌ترید</button>
-        <button class="nav-btn active" onclick="showPage('signals-p', this)"><i class="fas fa-chart-line"></i>سیگنال</button>
+        <button class="nav-btn" onclick="showTab('p-signals', this)"><span>📈</span>سیگنال</button>
+        <button class="nav-btn" onclick="showTab('p-history', this)"><span>📜</span>تاریخچه</button>
+        <button class="nav-btn" onclick="showTab('p-copy', this)"><span>🔄</span>کپی‌ترید</button>
+        <button class="nav-btn" onclick="showTab('p-calc', this)"><span>🧮</span>محاسبه</button>
+        <button class="nav-btn" onclick="window.open('https://t.me/your_admin')"><span>🎧</span>پشتیبانی</button>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#0f172a";
 
-        function showPage(id, btn) {
+        // تابع تعویض تب‌ها با اطمینان بالا
+        function showTab(pageId, btn) {
+            // مخفی کردن همه
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active-page');
-            btn.classList.add('active');
+            
+            // نمایش صفحه انتخابی
+            const target = document.getElementById(pageId);
+            if(target) {
+                target.classList.add('active-page');
+            }
+            
+            // فعال کردن دکمه
+            if(btn) {
+                btn.classList.add('active');
+            }
         }
 
         function calculate() {
@@ -208,54 +138,52 @@
             const s = document.getElementById('sl_p').value;
             if(b && r && s) {
                 const lot = (b * (r/100)) / (s * 10);
-                document.getElementById('res').innerText = "LOT پیشنهادی: " + lot.toFixed(2);
+                document.getElementById('res').innerText = lot.toFixed(2) + " Lot";
             }
         }
 
-        async function refreshData() {
+        async function update() {
             try {
-                const response = await fetch('http://localhost:8000/api/v1/status');
-                const data = await response.json();
+                // آدرس سرور پایتون شما
+                const res = await fetch('http://localhost:8000/api/v1/status');
+                const data = await res.json();
                 
                 document.getElementById('total-pips').innerText = (data.total_pips > 0 ? "+" : "") + data.total_pips;
-                document.getElementById('active-count').innerText = data.active_signals.length;
 
-                // Render Signals
+                // رندر سیگنال‌ها
                 const sList = document.getElementById('signal-list');
-                sList.innerHTML = data.active_signals.length ? "" : '<p style="text-align:center; color:#64748b; margin-top:50px;">سیگنال فعالی در بازار نیست...</p>';
+                sList.innerHTML = data.active_signals.length ? "" : '<p style="text-align:center; color:#64748b; margin-top:30px;">سیگنال فعالی نیست</p>';
                 data.active_signals.forEach(s => {
-                    const isBuy = s.type === "BUY";
                     sList.innerHTML += `
-                        <div class="signal-card ${isBuy ? 'buy-border' : 'sell-border'}">
-                            <div class="card-header">
-                                <span class="symbol-name">${s.symbol}</span>
-                                <span class="badge" style="background:${isBuy?'#065f46':'#991b1b'}; color:white">${s.type}</span>
+                        <div class="card" style="border-right: 5px solid ${s.type=='BUY'?'var(--green)':'var(--red)'}">
+                            <div style="display:flex; justify-content:space-between;">
+                                <b>📊 ${s.symbol}</b>
+                                <b style="color:${s.type=='BUY'?'var(--green)':'var(--red)'}">${s.type}</b>
                             </div>
-                            <div class="grid-data">
-                                <div class="data-box"><span class="data-label">ENTRY</span><span class="data-value">${s.entry}</span></div>
-                                <div class="data-box"><span class="data-label">TIME</span><span class="data-value">${s.time.split(' ')[1]}</span></div>
-                                <div class="data-box"><span class="data-label">STOP LOSS</span><span class="data-value" style="color:var(--danger)">${s.sl}</span></div>
-                                <div class="data-box"><span class="data-label">TAKE PROFIT</span><span class="data-value" style="color:var(--success)">${s.tp}</span></div>
+                            <div style="font-size:12px; margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                                <span>ورود: ${s.entry}</span>
+                                <span>زمان: ${s.time.split(' ')[1]}</span>
+                                <span style="color:var(--red)">SL: ${s.sl}</span>
+                                <span style="color:var(--green)">TP: ${s.tp}</span>
                             </div>
                         </div>`;
                 });
 
-                // Render History
+                // رندر تاریخچه
                 const hList = document.getElementById('history-list');
                 hList.innerHTML = "";
                 data.history.forEach(h => {
                     hList.innerHTML += `
                         <div class="hist-item">
-                            <div><b>${h.symbol}</b> <small style="color:#64748b">${h.time}</small></div>
-                            <div style="color:${h.pips>=0?'var(--success)':'var(--danger)'}">${h.pips > 0 ? '+':''}${h.pips} Pip</div>
+                            <span>${h.symbol}</span>
+                            <b style="color:${h.pips>=0?'var(--green)':'var(--red)'}">${h.pips > 0 ? '+':''}${h.pips} Pip</b>
                         </div>`;
                 });
-
-            } catch(e) { console.error("API OFFLINE"); }
+            } catch(e) { console.log("Waiting for Server..."); }
         }
 
-        setInterval(refreshData, 3000);
-        refreshData();
+        setInterval(update, 3000);
+        update();
     </script>
 </body>
 </html>
