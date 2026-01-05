@@ -3,134 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EXPONENTIAL TERMINAL PRO</title>
+    <title>TERMINAL PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #050810; --card: rgba(30, 41, 59, 0.6); --blue: #3b82f6; --green: #10b981; --red: #ef4444; --text: #f8fafc; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; overflow-x: hidden; }
+        :root { --bg: #050810; --card: rgba(30, 41, 59, 0.7); --blue: #3b82f6; --green: #10b981; --red: #ef4444; --text: #f8fafc; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: Tahoma, sans-serif; overflow-x: hidden; }
         .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; margin: 10px; padding: 15px; }
         
-        /* هدر */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; }
-        .total-box { flex-grow: 1; text-align: center; background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 12px; margin-left: 10px; border: 1px solid var(--blue); }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px; }
+        .total-box { flex-grow: 1; text-align: center; border: 1px solid var(--blue); border-radius: 12px; padding: 10px; margin-left: 10px; }
         
-        /* کارت‌های سیگنال */
-        .signal-card { position: relative; border-right: 4px solid var(--blue); margin-bottom: 10px; }
-        .pnl-badge { position: absolute; left: 15px; top: 15px; font-size: 18px; font-weight: bold; }
-        .sltp-box { display: flex; gap: 15px; margin-top: 10px; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
+        .signal-card { position: relative; border-right: 5px solid var(--blue); margin-bottom: 12px; }
+        .pips-badge { position: absolute; left: 15px; top: 15px; font-size: 18px; font-weight: bold; }
+        .sltp-row { display: flex; gap: 15px; margin-top: 10px; font-size: 12px; border-top: 1px solid #334155; padding-top: 8px; }
 
-        /* ناوبری پایین */
-        .nav-container { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; padding: 10px 0; border-top: 1px solid #334155; z-index: 1000; }
-        .nav-item { flex: 1; background: none; border: none; color: #64748b; display: flex; flex-direction: column; align-items: center; font-size: 11px; cursor: pointer; }
-        .nav-item.active { color: var(--blue); }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; display: flex; padding: 12px 0; border-top: 1px solid #334155; }
+        .nav-btn { flex: 1; border: none; background: none; color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-btn.active { color: var(--blue); }
 
         .page { display: none; padding: 10px; padding-bottom: 100px; }
-        .active-page { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .news-item { border-left: 3px solid var(--blue); padding: 12px; margin-bottom: 10px; font-size: 13px; line-height: 1.6; }
+        .active-page { display: block; }
+        .news-box { border-left: 3px solid var(--blue); padding: 10px; margin-bottom: 10px; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <div class="top-bar glass">
+    <div class="header glass">
         <div class="total-box">
-            <small style="color:#94a3b8">برآیند کل (Pip)</small><br>
-            <b id="total" style="font-size: 26px;">0</b>
+            <small>Performance (Pip)</small><br>
+            <b id="total-val" style="font-size: 24px;">0</b>
         </div>
-        <button onclick="tab('p-history')" style="background:var(--card); border:1px solid #444; color:white; border-radius:10px; padding:10px 15px; cursor:pointer;">📜 تاریخچه</button>
+        <button onclick="tab('p-hist')" style="background:var(--card); border:1px solid #444; color:white; padding:10px; border-radius:10px;">📜 تاریخچه</button>
     </div>
 
-    <div id="p-signals" class="page active-page">
-        <div id="list-sig"></div>
-    </div>
+    <div id="p-sig" class="page active-page"><div id="sig-list"></div></div>
+    <div id="p-news" class="page"><h3>📢 اخبار بازار</h3><div id="news-list"></div></div>
+    <div id="p-calc" class="page"><h3>🧮 محاسبه حجم</h3><div class="glass">
+        <input type="number" id="bal" placeholder="بالانس ($)" style="width:90%; padding:10px; margin:5px; border-radius:5px;"><br>
+        <input type="number" id="slp" placeholder="استاپ (پیپ)" style="width:90%; padding:10px; margin:5px; border-radius:5px;"><br>
+        <button onclick="calc()" style="width:95%; padding:10px; background:var(--green); border:none; color:white; margin:5px; border-radius:5px;">محاسبه</button>
+        <h2 id="res" style="text-align:center"></h2>
+    </div></div>
+    <div id="p-hist" class="page"><h3>📜 تاریخچه</h3><div id="hist-list" class="glass">به زودی...</div></div>
 
-    <div id="p-news" class="page">
-        <h3 style="margin:15px">📢 اخبار لحظه‌ای بازار</h3>
-        <div id="list-news"></div>
-    </div>
-
-    <div id="p-history" class="page">
-        <h3 style="margin:15px">📜 تاریخچه معاملات</h3>
-        <div id="list-hist" class="glass"></div>
-    </div>
-
-    <div id="p-calc" class="page">
-        <h3 style="margin:15px">🧮 محاسبه حجم</h3>
-        <div class="glass">
-            <input type="number" id="bal" placeholder="موجودی حساب ($)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none; background:#000; color:#fff;">
-            <input type="number" id="sl_p" placeholder="استاپ لاس (پیپ)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none; background:#000; color:#fff;">
-            <button onclick="calcLot()" style="width:100%; padding:15px; background:var(--green); color:white; border:none; border-radius:8px; font-weight:bold;">محاسبه</button>
-            <h2 id="res" style="text-align:center; color:var(--green)"></h2>
-        </div>
-    </div>
-
-    <nav class="nav-container">
-        <button class="nav-item active" onclick="tab('p-signals', this)"><span>📈 سیگنال</span></button>
-        <button class="nav-item" onclick="tab('p-news', this)"><span>📢 اخبار</span></button>
-        <button class="nav-item" onclick="tab('p-calc', this)"><span>🧮 محاسبه</span></button>
-        <button class="nav-item" onclick="openSupport()"><span>🎧 پشتیبانی</span></button>
+    <nav class="nav-bar">
+        <button class="nav-btn active" onclick="tab('p-sig', this)">📈 سیگنال</button>
+        <button class="nav-btn" onclick="tab('p-news', this)">📢 اخبار</button>
+        <button class="nav-btn" onclick="tab('p-calc', this)">🧮 محاسبه</button>
+        <button class="nav-btn" onclick="tg.openTelegramLink('https://t.me/your_admin')">🎧 پشتیبانی</button>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // آدرس Ngrok شما (باید با آدرس جدید جایگزین شود)
+        // آدرس ان‌گراک خود را اینجا دقیق وارد کنید
         const API = "https://unparried-jack-multipolar.ngrok-free.dev"; 
 
         function tab(id, el) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active-page');
-            if(el && el.classList.contains('nav-item')) el.classList.add('active');
+            if(el) el.classList.add('active');
         }
 
-        function openSupport() { tg.openTelegramLink('https://t.me/your_admin'); }
-
-        function calcLot() {
+        function calc() {
             const b = document.getElementById('bal').value;
-            const s = document.getElementById('sl_p').value;
-            if(b && s) {
-                const r = (b * 0.01) / (s * 10);
-                document.getElementById('res').innerText = r.toFixed(2) + " Lot";
-            }
+            const s = document.getElementById('slp').value;
+            if(b && s) document.getElementById('res').innerText = ((b * 0.01) / (s * 10)).toFixed(2) + " Lot";
         }
 
-        async function refresh() {
+        async function update() {
             try {
-                const res = await fetch(`${API}/api/v1/status`);
-                const data = await res.json();
+                const r = await fetch(`${API}/api/v1/status`);
+                const d = await r.json();
                 
-                document.getElementById('total').innerText = Math.round(data.total_pips);
+                document.getElementById('total-val').innerText = d.total_pips;
 
-                let sigHtml = '';
-                data.active_signals.forEach(s => {
-                    const color = s.current_pips >= 0 ? 'var(--green)' : 'var(--red)';
-                    sigHtml += `
-                        <div class="glass signal-card" style="border-right-color:${s.type=='BUY'? 'var(--green)':'var(--red)'}">
-                            <div class="pnl-badge" style="color:${color}">${Math.round(s.current_pips)} P</div>
-                            <b style="font-size:18px">${s.symbol}</b> <small style="color:${s.type=='BUY'?'var(--green)':'var(--red)'}">${s.type}</small><br>
-                            <small style="opacity:0.6">ورود: ${s.entry} | زمان: ${s.time}</small>
-                            <div class="sltp-box">
-                                <span style="color:var(--red)">SL: ${s.sl}</span>
-                                <span style="color:var(--green)">TP: ${s.tp}</span>
-                            </div>
-                        </div>`;
+                let sH = '';
+                d.active_signals.forEach(s => {
+                    const c = s.current_pips >= 0 ? 'var(--green)' : 'var(--red)';
+                    sH += `<div class="glass signal-card" style="border-right-color:${s.type=='BUY'?'var(--green)':'var(--red)'}">
+                        <div class="pips-badge" style="color:${c}">${s.current_pips} P</div>
+                        <b>${s.symbol}</b> <small>${s.type}</small><br>
+                        <small>Entry: ${s.entry} | Time: ${s.time}</small>
+                        <div class="sltp-row">
+                            <span style="color:var(--red)">SL: ${s.sl}</span>
+                            <span style="color:var(--green)">TP: ${s.tp}</span>
+                        </div>
+                    </div>`;
                 });
-                document.getElementById('list-sig').innerHTML = sigHtml || '<center style="opacity:0.5; margin-top:50px">سیگنالی باز نیست</center>';
-                
-                let newsHtml = '';
-                data.news.forEach(n => {
-                    newsHtml += `<div class="glass news-item"><small style="color:var(--blue)">${n.time}</small><br>${n.title}</div>`;
-                });
-                document.getElementById('list-news').innerHTML = newsHtml;
+                document.getElementById('sig-list').innerHTML = sH || '<center style="margin-top:40px; opacity:0.5">در انتظار سیگنال...</center>';
 
-            } catch(e) { console.error("ارتباط با سرور برقرار نشد"); }
+                let nH = '';
+                d.news.forEach(n => { nH += `<div class="glass news-box"><small style="color:var(--blue)">${n.time}</small><br>${n.title}</div>`; });
+                document.getElementById('news-list').innerHTML = nH;
+
+            } catch(e) { console.error("Connection Error"); }
         }
 
-        setInterval(refresh, 2500);
-        refresh();
+        setInterval(update, 3000); update();
     </script>
 </body>
 </html>
