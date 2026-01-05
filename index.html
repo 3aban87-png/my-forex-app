@@ -1,118 +1,43 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex Pro App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: white; margin: 0; padding-bottom: 80px; }
-        .header { background: #1e293b; padding: 15px; text-align: center; font-weight: bold; border-bottom: 2px solid #334155; position: sticky; top: 0; }
-        .page { display: none; padding: 20px; animation: slideUp 0.3s ease; }
-        .active-page { display: block; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+<div id="copytrade" class="page">
+    <h3>🔄 تنظیمات کپی‌ترید</h3>
+    <div class="card">
+        <p style="font-size: 14px;">وضعیت اتصال: <span id="conn-status" style="color: #fb7185;">قطع شده</span></p>
+        <input type="text" id="mt_account" placeholder="شماره حساب متاتریدر">
+        <input type="password" id="mt_password" placeholder="رمز عبور (Investor/Main)">
+        <input type="text" id="mt_server" placeholder="سرور (مثلاً: WMMarkets-Live)">
+        <button onclick="connectAccount()" style="margin-top: 10px; background: #16a34a;">اتصال به حساب</button>
+    </div>
+
+    <div class="card">
+        <p>انتخاب نوع حجم معاملات:</p>
+        <select id="volume-mode" onchange="toggleVolumeInput()" style="width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: white; border: 1px solid #334155;">
+            <option value="auto">هوشمند (بر اساس مدیریت سرمایه)</option>
+            <option value="manual">دستی (حجم ثابت)</option>
+        </select>
         
-        .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
-        
-        .navbar { position: fixed; bottom: 0; width: 100%; background: #1e293b; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #334155; }
-        .nav-item { color: #94a3b8; border: none; background: none; font-size: 10px; flex: 1; cursor: pointer; }
-        .nav-item.active { color: #3b82f6; }
-        .icon { font-size: 20px; display: block; margin-bottom: 4px; }
-        
-        .badge { padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; }
-        .buy { background: #16a34a; } .sell { background: #dc2626; }
-    </style>
-</head>
-<body>
-
-    <div class="header" id="page-title">سیگنال‌های زنده</div>
-
-    <div id="signals" class="page active-page">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>XAUUSD (GOLD)</strong>
-                <span class="badge buy">BUY 🟢</span>
-            </div>
-            <p style="color: #94a3b8; font-size: 13px; margin: 10px 0;">قیمت ورود: 2045.50</p>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
-                <div style="color: #4ade80;">TP: 2060.00</div>
-                <div style="color: #fb7185;">SL: 2038.00</div>
-            </div>
+        <div id="manual-volume-div" style="display: none; margin-top: 15px;">
+            <label style="font-size: 12px; color: #94a3b8;">حجم مورد نظر را وارد کنید:</label>
+            <input type="number" id="fixed-lot" step="0.01" value="0.01">
         </div>
     </div>
+</div>
 
-    <div id="copytrade" class="page">
-        <h3>🔄 تنظیمات کپی‌ترید</h3>
-        <div class="card">
-            <p style="font-size: 14px;">وضعیت اتصال: <span style="color: #fb7185;">قطع شده</span></p>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button style="background: #16a34a;">فعال‌سازی</button>
-                <button style="background: #475569;">تنظیمات API</button>
-            </div>
-        </div>
-        <div class="card">
-            <p>مدل مدیریت حجم:</p>
-            <select id="copy-mode" style="width: 100%; padding: 10px; border-radius: 8px; background: #0f172a; color: white;">
-                <option value="auto">هوشمند (بر اساس مدیریت سرمایه)</option>
-                <option value="fixed">حجم ثابت (0.01)</option>
-            </select>
-        </div>
-    </div>
+<script>
+    // تابع برای نشان دادن/مخفی کردن فیلد حجم دستی
+    function toggleVolumeInput() {
+        const mode = document.getElementById('volume-mode').value;
+        const div = document.getElementById('manual-volume-div');
+        div.style.display = (mode === 'manual') ? 'block' : 'none';
+    }
 
-    <div id="calc" class="page">
-        <h3>🧮 مدیریت سرمایه هوشمند</h3>
-        <input type="number" id="balance" placeholder="موجودی حساب ($)" value="1000">
-        <input type="number" id="risk" placeholder="درصد ریسک در هر ترید" value="1">
-        <input type="number" id="pips" placeholder="فاصله استاپ (Pip)" value="30">
-        <button onclick="calculateLot()">محاسبه لات پیشنهادی</button>
-        <div id="result" style="margin-top:20px; text-align:center; font-size:20px; color:#4ade80; font-weight: bold;"></div>
-    </div>
-
-    <div id="public" class="page">
-        <h3>📢 آخرین اخبار و تحلیل‌ها</h3>
-        <div class="card">
-            <p style="font-size: 13px;">فوری: نرخ بهره آمریکا بدون تغییر باقی ماند. بازار طلا در انتظار نوسان.</p>
-            <small style="color: #64748b;">15 دقیقه قبل</small>
-        </div>
-        <button onclick="window.open('https://t.me/your_channel')">ورود به کانال عمومی</button>
-    </div>
-
-    <div id="support" class="page">
-        <h3>🎧 مرکز پشتیبانی</h3>
-        <p style="text-align: center; color: #94a3b8;">در صورت بروز هرگونه مشکل فنی در اتصال به کپی‌ترید، پیام بدهید.</p>
-        <button onclick="window.open('https://t.me/admin_id')">ارسال تیکت پشتیبانی</button>
-    </div>
-
-    <nav class="navbar">
-        <button class="nav-item" onclick="showPage('support', 'پشتیبانی')"> <span class="icon">🎧</span> پشتیبانی </button>
-        <button class="nav-item" onclick="showPage('public', 'کانال عمومی')"> <span class="icon">📢</span> عمومی </button>
-        <button class="nav-item" onclick="showPage('calc', 'ماشین‌حساب')"> <span class="icon">🧮</span> محاسبات </button>
-        <button class="nav-item" onclick="showPage('copytrade', 'کپی‌ترید')"> <span class="icon">🔄</span> کپی‌ترید </button>
-        <button class="nav-item active" onclick="showPage('signals', 'سیگنال‌ها')"> <span class="icon">📈</span> سیگنال‌ها </button>
-    </nav>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        function showPage(pageId, title) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-            document.getElementById(pageId).classList.add('active-page');
-            document.getElementById('page-title').innerText = title;
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-        }
-
-        function calculateLot() {
-            const balance = document.getElementById('balance').value;
-            const risk = document.getElementById('risk').value;
-            const pips = document.getElementById('pips').value;
-            const res = (balance * (risk / 100)) / (pips * 10);
-            document.getElementById('result').innerText = "حجم پیشنهادی: " + res.toFixed(2) + " Lot";
-        }
-    </script>
-</body>
-</html>
+    function connectAccount() {
+        // اینجا در آینده کد اتصال به بک‌ان پایتون را می‌نویسیم
+        tg.MainButton.setText("در حال بررسی اتصال...");
+        tg.MainButton.show();
+        setTimeout(() => {
+            document.getElementById('conn-status').innerText = "متصل شد ✅";
+            document.getElementById('conn-status').style.color = "#4ade80";
+            tg.MainButton.hide();
+        }, 2000);
+    }
+</script>
